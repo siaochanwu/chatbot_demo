@@ -24,15 +24,19 @@ app.set('port', port);
 const server = http.Server(app);
 const io = require('socket.io')(server);
 
+let UserMap = new Map();
+
 //觸發連線(開網頁)
 io.on('connection', (socket) => {
-  console.log('Hello! 有新的聊天觀眾');
-  // 接收來自前端的 sendMessage 事件
-  // 然後回送 allMessage 事件
+  // 接收來自前端的 sendMessage 事件 然後回送 allMessage 事件
   socket.on("sendMessage", function (message) {
-    console.log("前端來的Msg=", message)
-    // 當收到事件的時候 也發送一個 "allMessage" 事件給所有的連線用戶
-    io.emit("allMessage", "歡迎"+message.name +"! 聊天內容:"+message.msg)
+    console.log("收到的Msg:", message)
+    //解析UserInfo, 判斷是否在Map中做對應處理
+    // if (UserMap.get(message.name) != NaN) {
+    //   UserMap.set(message.name, message.msg)
+    //   io.emit("allMessage", "歡迎"+message.name)
+    // }
+    io.emit("allMessage", message)
   })
   //觸發離線事件(關網頁)
   socket.on('disconnect', () => {
