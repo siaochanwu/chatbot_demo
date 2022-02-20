@@ -1,11 +1,36 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+  </script>
+</head>
+
+<body>
+  <h1>
+    <%= title %>
+  </h1>
+  <div id="msg"></div>
+  <script>
+    // 發送一個 "sendMessage" 事件
+    socket.emit("sendMessage", {
+      name: "mike",
+      msg: "hello 大家 我是 mike"
+    })
+    // 監聽來自 server 的 "allMessage" 事件 將內容轉到 div 中呈現
+    socket.on("allMessage", function (msg) {
+      console.log(msg)
+      document.getElementById("msg").innerText = msg;
+    })
+  </script>
+  <p>Welcome to <%= title %>
+  </p>
+</body>
+
 </html>
