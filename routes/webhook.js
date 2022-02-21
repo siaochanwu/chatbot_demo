@@ -2,6 +2,7 @@ require('dotenv').config()
 var express = require('express');
 var router = express.Router();
 const axios = require('axios');
+const SimpleNodeLogger = require('simple-node-logger')
 
 const AssistantV1 = require('ibm-watson/assistant/v1');
 const { IamAuthenticator } = require('ibm-watson/auth');
@@ -10,7 +11,7 @@ let context;
 //connect with line
 router.post('/line', async function(req, res, next) {
 
-	console.log(JSON.stringify(req.body, null, 2))
+	// console.log(JSON.stringify(req.body, null, 2))
     res.status(200).send()
 
     let events = req.body.events[0]
@@ -23,12 +24,14 @@ router.post('/line', async function(req, res, next) {
             
             //ai判斷要回傳的內容
             let msg = await connectWatson(text, context)
+            
+            logger.log(msg.context.conversation_id + ' says:', text);
 
-            if (context == undefined) {
-                context = await msg.context
+            if (msg.context) { //context包含對話進度資訊須更新
+                context = msg.context
             }
 
-            await replyUser(replyToken, msg.output.text[0])
+            replyUser(replyToken, msg.output.text[0])
         }
     }
 
@@ -78,9 +81,38 @@ function connectWatson(text, context) {
         })
         .then(res => {
             // console.log(JSON.stringify(res.result, null, 2));
+            logger.log(res.result.user_id + ' return message:', res.result)
             return res.result
         })
         .catch(err => {
-            console.log(err)
+            logger.error(res.result.user_id + ' call watson fail:', err)
         });
 }
+
+let logger = {
+    init: function(fileName) {
+        const opts1 = {
+            logDirectory: './logs',
+            fileNamePattern: `${fileName}-<DATE>.log`,
+            dateFormat: 'YYYY-MM-DD',
+            timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS'
+        }
+        this.normalLogger = SimpleNodeLogger.createRollingFileLogger(opts1);
+        const opts2 = {
+            logDirectory: './logs',
+            fileNamePattern: `${fileName}-<DATE>.log`,
+            dateFormat: 'YYYY-MM-DD',
+            timestampFormat: 'YYYY-MM-DD HH:mm:ss.SSS'
+        }
+        this.errorLogger = SimpleNodeLogger.createRollingFileLogger(opts2);
+    },
+    log: function(){
+        let myLog = `${Object.values(arguments).join(' ')}`
+        this.normalLogger.info(myLog)
+    },
+    error: function(){
+        let myLog = `${Object.values(arguments).join(' ')}`
+        this.errorLogger.info(myLog)
+    }
+}
+logger.init('webhook')
