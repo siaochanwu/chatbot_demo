@@ -1,3 +1,4 @@
+'use strict'; //嚴格模式 https://developer.mozilla.org/zh-TW/docs/Web/JavaScript/Reference/Strict_mode
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
