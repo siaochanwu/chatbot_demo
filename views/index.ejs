@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Socket.IO chat</title>
+  <title>聊天室</title>
   <style>
     body {
       margin: 0;
@@ -64,29 +64,42 @@
 <body>
   <ul id="messages"></ul>
   <form id="form" action="">
+    <input required id="name" value="輸入名稱"><button id="button" onclick="sub()" onclick="this.disabled=true">註冊</button>
     <input id="input" autocomplete="off" /><button>Send</button>
   </form>
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    var socket = io();
+    let socket = io();
+    let user = document.getElementById('name');
+    let button = document.getElementById('button');
+    let messages = document.getElementById('messages');
+    let form = document.getElementById('form');
+    let input = document.getElementById('input');
 
-    var messages = document.getElementById('messages');
-    var form = document.getElementById('form');
-    var input = document.getElementById('input');
+    //觸發註冊
+    function sub() {
+      if (user.value) {
+        socket.emit('Login', user.value);
+      }
+    };
 
+    //觸發送單
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       if (input.value) {
-        // userInfo = {
-        //   name: "mike",
-        //   msg: "hello 大家 我是 mike"
-        // }
         socket.emit('sendMessage', input.value);
         input.value = '';
       }
     });
 
+    //監聽事件
     socket.on('allMessage', function (msg) {
+      var item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+    socket.on('system', function (msg) {
       var item = document.createElement('li');
       item.textContent = msg;
       messages.appendChild(item);

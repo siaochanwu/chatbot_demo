@@ -28,19 +28,37 @@ let UserMap = new Map();
 
 //觸發連線(開網頁)
 io.on('connection', (socket) => {
+  let i = 0;
+  socket.on("Login", function (name) {
+    if (UserMap.get(socket) != undefined) {
+      console.log("重複送註冊不處理:", name)
+    } else {
+      let system_msg = "系統通知----------讓我們歡迎" + name + "加入聊天室----------"
+      UserMap.set(socket, name); //紀錄連線近來的socket
+      io.emit("system", system_msg)
+      console.log(system_msg)
+    }
+  })
+
+
   // 接收來自前端的 sendMessage 事件 然後回送 allMessage 事件
   socket.on("sendMessage", function (message) {
     console.log("收到的Msg:", message)
-    //解析UserInfo, 判斷是否在Map中做對應處理
-    // if (UserMap.get(message.name) != NaN) {
-    //   UserMap.set(message.name, message.msg)
-    //   io.emit("allMessage", "歡迎"+message.name)
-    // }
-    io.emit("allMessage", message)
+    if (UserMap.get(socket) == undefined) {
+      let system_msg = "系統通知----------請先註冊----------"
+      io.emit("system", system_msg)
+      console.log(system_msg)
+    } else {
+      let sendData = UserMap.get(socket) + ":" + message
+      io.emit("allMessage", sendData)
+    }
   })
+
   //觸發離線事件(關網頁)
   socket.on('disconnect', () => {
-    console.log('再見使用者');
+    let system_msg = "系統通知----------再見了"+UserMap.get(socket)+"----------"
+    io.emit("system", system_msg)
+    console.log(system_msg);
   });
 });
 /**
